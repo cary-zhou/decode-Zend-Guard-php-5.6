@@ -1,14 +1,19 @@
 <?php
-// many pers worked for this deco :)
-
+define('INDENT', "\t");
 ini_set('error_reporting', E_ALL);
+assert_options(ASSERT_ACTIVE, 0);
 $_CURRENT_FILE = NULL;
+
+if (function_exists("gc_disable")) {
+  gc_collect_cycles();
+  gc_disable();
+}
 
 function color($str, $color = 33) {
   return "\x1B[{$color}m$str\x1B[0m";
 }
 
-function str($code, $indent = '') // {{{
+function str($code, $indent = '')
 {
   if (is_array($code)) {
     $array = array();
@@ -21,7 +26,6 @@ function str($code, $indent = '') // {{{
     $code = foldToCode($code, $indent);
     return $code->toCode($indent);
   }
-
   return (string) $code;
 }
 
@@ -30,37 +34,29 @@ function foldToCode($src, $indent = '')
   if (is_array($indent)) {
     $indent = $indent['indent'];
   }
-
   if (!is_object($src)) {
     return new Decompiler_Code($src);
   }
-
   if (!method_exists($src, 'toCode')) {
     var_dump($src);
     exit('no toCode');
   }
   if (get_class($src) != 'Decompiler_Code') {
-    // rewrap it
     $src = new Decompiler_Code($src->toCode($indent));
   }
-
   return $src;
 }
 
-// }}}
-function value($value,$noescape = false) // {{{
+function value($value,$noescape = false)
 {
   $spec = xcache_get_special_value($value);
   if (isset($spec)) {
     $value = $spec;
     if (!is_array($value)) {
-      // constant
       return $value;
     }
   }
-
   if (is_a($value, 'Decompiler_Object')) {
-    // use as is
   }
   else {
     if (is_array($value)) {
@@ -73,8 +69,7 @@ function value($value,$noescape = false) // {{{
   return $value;
 }
 
-// }}}
-function unquoteName_($str, $asVariableName, $indent = '') // {{{
+function unquoteName_($str, $asVariableName, $indent = '')
 {
   $str2 = str($str, $indent);
   if (preg_match("!^\"[\\w_][\\w\\d_\\\\]*\"\$!", $str2)) {
@@ -82,7 +77,6 @@ function unquoteName_($str, $asVariableName, $indent = '') // {{{
   }
   else {
     if ($asVariableName) {
-      // СѓР±РёСЂР°РµС‚ СЃРєРѕР±РєРё РІ $v->{$a}
       if (!preg_match("!^\\$[\\w_][\\w\\d_\\\\]*\$!", $str2)) {
         return "{" . $str2 . "}";
       } else {
@@ -95,28 +89,22 @@ function unquoteName_($str, $asVariableName, $indent = '') // {{{
   }
 }
 
-// }}}
-function unquoteVariableName($str, $indent = '') // {{{
+function unquoteVariableName($str, $indent = '')
 {
   return unquoteName_($str, TRUE, $indent);
 }
 
-// }}}
-function unquoteName($str, $indent = '') // {{{
+function unquoteName($str, $indent = '')
 {
   return unquoteName_($str, FALSE, $indent);
 }
 
-// deobfuscate function name
 function fixFunctionName($name,$addprefix = true) {
   static $dict = array();
   if (is_object($name)) return $name;
   if (strpos($name, '\\') !== FALSE) {
       preg_match('#^(.*)\\\\(.+)$#',$name,$r);
       list (,$ns,$var) = $r;
-//      $ns = strtok($name, '\\');
-//      $len = strlen($ns);
-//      $var = substr($name, $len);
   } else  $var = $name;
   if (!preg_match("!^[a-zA-Z_][a-zA-Z0-9_]*$!",$var))
   {
