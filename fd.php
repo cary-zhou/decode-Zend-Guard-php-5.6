@@ -1,7 +1,5 @@
 <?php
-
 define('FILEMASK_REGEXP','#\.php$|\.phtml$|\.lang$#');
-
 set_time_limit(0);
 ini_set('memory_limit','1G');
 require_once("Decompiler.class.php");
@@ -66,5 +64,4 @@ foreach($files as $fn) {
    _dc($fn,$f);
    echo " -- Done.\n";
 }
-
 echo "-----------------------------------\nFinished.\n";
